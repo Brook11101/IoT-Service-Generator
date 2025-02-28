@@ -55,7 +55,7 @@ public class IRundetailsServiceTest {
     private int appletNum = 1;
 
     @Test
-    public void generateAppletExperiment() throws IOException, TemplateException, InterruptedException {
+    public void generateAppletTimeCountExperiment() throws IOException, TemplateException, InterruptedException {
         runExperiment(appletNum);
     }
 
@@ -96,7 +96,7 @@ public class IRundetailsServiceTest {
 
         for (int i = 1; i <= appletNum; i++) {
             String appletName = "applet" + i;
-            int port = 13000 + i;
+            int port = 33000 + i;
 
             // 生成 Spring 配置
             generator.generateSpring("D:\\preStage\\IoTRPC\\" + appletName, appletName, port);
@@ -116,7 +116,7 @@ public class IRundetailsServiceTest {
 
         for (int i = 1; i <= appletNum; i++) {
             String appletName = "applet" + i;
-            compileAndPackageAndRunJar(appletName, 13000 + i);
+            compileAndPackageAndRunJar(appletName, 33000 + i);
         }
 
         return System.currentTimeMillis() - startupStartTime;
@@ -249,4 +249,141 @@ public class IRundetailsServiceTest {
                 "return appletAService.SwitchName(\"dWpBihQN\", 1702953840);\n" +
                 "}";
     }
+
+    // ----------------- 新增：内存占用实验（预生成、预编译） -----------------
+
+    /**
+     * 新的内存占用实验：
+     * 1. 一次性生成 50 个微服务（applet1～applet50）
+     * 2. 编译生成所有微服务的 jar 文件（预编译，一次性完成）
+     * 3. 根据指定数量启动微服务（采用最小内存参数： -Xms16m -Xmx64m ），并统计内存占用
+     * 4. 下线操作不在实验中自动调用，由人工关闭
+     */
+    @Test
+    public void testMemoryUsageExperimentPrecompiled() throws IOException, TemplateException, InterruptedException {
+//        int totalMicroservices = 50;
+//        // 第一步：生成 50 个微服务
+//        System.out.println("开始生成 " + totalMicroservices + " 个微服务...");
+//        generateAppletServices(totalMicroservices);
+//        System.out.println("生成完成。");
+//
+//        // 第二步：预编译所有微服务（一次性编译生成 jar 文件）
+//        for (int i = 1; i <= totalMicroservices; i++) {
+//            String appletName = "applet" + i;
+//            compileAndPackageJarMinMemory(appletName);
+//        }
+//        System.out.println("所有微服务编译完成。");
+
+        // 第三步：启动指定数量的微服务（例如：启动 20 个）
+        int microservicesToStart = 50; // 可根据需要调整
+        System.out.println("启动 " + microservicesToStart + " 个微服务（最小内存模式）...");
+        for (int i = 1; i <= microservicesToStart; i++) {
+            String appletName = "applet" + i;
+            startExistingJarMinMemory(appletName, 33000 + i);
+        }
+
+        // 等待所有服务启动并稳定
+        for (int i = 1; i <= microservicesToStart; i++) {
+            int port = 33000 + i;
+            while (!isServiceHealthy("127.0.0.1", port)) {
+                System.out.println("等待 applet" + i + " 启动...");
+                Thread.sleep(1000);
+            }
+        }
+        System.out.println("所有服务已启动，等待稳定...");
+        Thread.sleep(5000);
+
+        // 第四步：统计内存占用（单位：MB）
+        long totalBytes = getTotalMicroserviceMemoryUsage();
+        double totalMB = totalBytes / (1024.0 * 1024.0);
+        System.out.printf("启动 %d 个微服务时，总内存占用：%.2f MB%n", microservicesToStart, totalMB);
+
+        /// 自动关闭所有启动的微服务
+        System.out.println("开始自动关闭所有微服务...");
+        shutdownAppletServices(microservicesToStart);
+        System.out.println("所有微服务已关闭。");
+    }
+
+    /**
+     * 预编译微服务：仅编译并生成 jar 文件，不启动服务
+     */
+    private void compileAndPackageJarMinMemory(String appletName) throws IOException {
+        ProcessBuilder processBuilder = new ProcessBuilder("D:\\apache-maven-3.9.0\\bin\\mvn.cmd", "clean", "install");
+        processBuilder.directory(new File("D:\\preStage\\IoTRPC\\" + appletName));
+        Process process = processBuilder.start();
+        try {
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                System.out.println("预编译成功：" + appletName);
+            } else {
+                System.err.println("预编译失败，exitCode=" + exitCode + "：" + appletName);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 启动已预编译好的微服务（最小内存模式）：仅启动 jar 文件，不再编译
+     * 启动命令中增加 -Xms16m -Xmx64m 参数
+     */
+    private void startExistingJarMinMemory(String appletName, int port) throws IOException {
+        String batFilePath = "D:\\preStage\\IoTRPC\\" + appletName + "\\start-" + appletName + ".bat";
+        generateMinMemoryBatchFile(batFilePath, appletName);
+        try {
+            String[] cmd = {"C:\\Windows\\System32\\cmd.exe", "/c", "start", "", batFilePath};
+            Runtime.getRuntime().exec(cmd);
+            System.out.println("启动 " + appletName + "（最小内存模式）。");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 等待当前服务启动
+        while (!isServiceHealthy("127.0.0.1", port)) {
+            System.out.println("等待 " + appletName + " 启动...");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        System.out.println(appletName + " 启动成功。");
+    }
+
+    /**
+     * 生成最小内存模式下的启动批处理文件（启动脚本）
+     * 启动命令中增加参数：-Xms16m -Xmx64m
+     */
+    private void generateMinMemoryBatchFile(String batFilePath, String appletName) throws IOException {
+        File batFile = new File(batFilePath);
+        try (FileWriter writer = new FileWriter(batFile)) {
+            String command = "D:\\Java8\\bin\\java.exe -Xms16m -Xmx64m -jar D:\\preStage\\IoTRPC\\"
+                    + appletName + "\\target\\" + appletName + "-0.0.1-SNAPSHOT.jar";
+            writer.write(command);
+        }
+    }
+
+    /**
+     * 使用 WMIC 查询所有匹配微服务的内存占用（WorkingSetSize，单位为字节），并汇总返回
+     */
+    private long getTotalMicroserviceMemoryUsage() throws IOException {
+        ProcessBuilder pb = new ProcessBuilder("wmic", "process", "where",
+                "CommandLine like '%applet%-0.0.1-SNAPSHOT.jar%'", "get", "WorkingSetSize");
+        Process process = pb.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        long totalBytes = 0;
+        while ((line = reader.readLine()) != null) {
+            line = line.trim();
+            if (line.isEmpty() || line.equalsIgnoreCase("WorkingSetSize")) continue;
+            try {
+                long bytes = Long.parseLong(line);
+                totalBytes += bytes;
+            } catch (NumberFormatException e) {
+                // 忽略无法解析的行
+            }
+        }
+        reader.close();
+        return totalBytes;
+    }
+
 }
