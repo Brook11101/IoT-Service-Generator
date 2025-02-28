@@ -64,7 +64,7 @@ public class IRundetailsServiceTest {
         List<Long> startTimes = new ArrayList<>();
         List<Long> shutdownTimes = new ArrayList<>();
 
-        for (int j = 1; j <= 1; j++) {
+        for (int j = 1; j <= 10; j++) {
             // 生成阶段
             long generateTotalTime = generateAppletServices(appletNum);
             generateTimes.add(generateTotalTime);
