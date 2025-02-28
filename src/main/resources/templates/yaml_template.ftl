@@ -32,3 +32,12 @@ gp:
     servicePort: 20880
     registerType: 0
     registryAddress: 114.55.74.144:2181
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,shutdown
+  endpoint:
+    shutdown:
+      enabled: true

@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.${appletName}</groupId>
-    <artifactId>appletA</artifactId>
+    <artifactId>${appletName}</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>test</name>
     <description>Generate by IoT-Service-Generator</description>
@@ -53,6 +53,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <dependency>
@@ -125,9 +130,6 @@
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
-
-
-
         </resources>
 
         <plugins>
@@ -140,7 +142,15 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
         </plugins>
+
+
     </build>
 
 </project>
