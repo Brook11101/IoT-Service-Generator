@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
 
 /**
 * <p>
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 * @since 2024-01-25
 */
 
+@Lazy
 @Service
 public class SpecificServiceImpl extends ServiceImpl<RundetailsMapper, Rundetails> implements ISpecificService {
 @Autowired

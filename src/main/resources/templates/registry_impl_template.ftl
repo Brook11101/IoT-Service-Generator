@@ -9,8 +9,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import spring.annotation.RemoteServiceReference;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 
-
+@Lazy
 @RemoteServiceReference //对于带有这种注解的，则直接进行服务的注册与发布
 @Slf4j
 @Service

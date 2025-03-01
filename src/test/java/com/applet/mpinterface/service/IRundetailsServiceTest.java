@@ -275,7 +275,7 @@ public class IRundetailsServiceTest {
 //        System.out.println("所有微服务编译完成。");
 
         // 第三步：启动指定数量的微服务（例如：启动 20 个）
-        int microservicesToStart = 50; // 可根据需要调整
+        int microservicesToStart = 20; // 可根据需要调整
         System.out.println("启动 " + microservicesToStart + " 个微服务（最小内存模式）...");
         for (int i = 1; i <= microservicesToStart; i++) {
             String appletName = "applet" + i;
@@ -291,7 +291,7 @@ public class IRundetailsServiceTest {
             }
         }
         System.out.println("所有服务已启动，等待稳定...");
-        Thread.sleep(5000);
+        Thread.sleep(10000);
 
         // 第四步：统计内存占用（单位：MB）
         long totalBytes = getTotalMicroserviceMemoryUsage();
@@ -356,7 +356,7 @@ public class IRundetailsServiceTest {
     private void generateMinMemoryBatchFile(String batFilePath, String appletName) throws IOException {
         File batFile = new File(batFilePath);
         try (FileWriter writer = new FileWriter(batFile)) {
-            String command = "D:\\Java8\\bin\\java.exe -Xms16m -Xmx64m -jar D:\\preStage\\IoTRPC\\"
+            String command = "D:\\Java8\\bin\\java.exe -Xms8m -Xmx32m -jar D:\\preStage\\IoTRPC\\"
                     + appletName + "\\target\\" + appletName + "-0.0.1-SNAPSHOT.jar";
             writer.write(command);
         }

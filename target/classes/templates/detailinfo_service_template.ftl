@@ -3,8 +3,9 @@ package com.${appletName}.mpinterface.service;
     import com.applet.mpinterface.domain.pojo.Rundetails;
     import com.baomidou.mybatisplus.extension.service.IService;
     import org.springframework.stereotype.Service;
+    import org.springframework.context.annotation.Lazy;
 
-
+    @Lazy
     @Service
 public interface ISpecificService extends IService<Rundetails> {
 
